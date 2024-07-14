@@ -7,7 +7,6 @@
 #include <limits.h>
 #include <errno.h>
 
-#include "safe_lib.h"
 #include "mbuffer.h"
 #include "vars.h"
 
@@ -46,13 +45,6 @@ void handleargs(int argc, char *argv[], struct argInfo *data);
 // internal logger function
 char *binexpand(uint8_t bin, size_t size);
 void _logger(short loglevel, const char func[], const char format[], ...);
-
-errno_t pathcat(char path1[], const char path2[]);
-errno_t pathcpy(char path1[], const char path2[]);
-
-// better strcmp implementations
-int strcmp_ss(const char str1[], const char str2[]);
-int strncmp_ss(const char str1[], const char str2[], size_t length);
 
 const char *find_file(const char *input);
 #endif

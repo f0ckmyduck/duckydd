@@ -3,11 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <errno.h>
 #include <signal.h>
 
 #include "io.h"
-#include "main.h"
 
 void handle_signal(int signal)
 {

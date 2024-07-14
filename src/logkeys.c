@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <errno.h>
 #include <fcntl.h>
 #include <linux/input.h>
 #include <linux/kd.h>
@@ -14,7 +13,6 @@
 #include <xkbcommon/xkbcommon-x11.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include "config.h"
 #include "io.h"
 #include "logkeys.h"
 #include "main.h"
@@ -206,8 +204,7 @@ static int load_kernel_keymaps(const int fd, struct keyboardInfo *kbd)
 			return -3;
 		}
 
-		memcpy_s(kbd->k.string[i], MAX_SIZE_KBSTRING, temp.kb_string,
-			 MAX_SIZE_KBSTRING);
+		memcpy(kbd->k.string[i], temp.kb_string, MAX_SIZE_KBSTRING);
 	}
 
 	LOG(1, "Kernel Keymap loaded!\n");
@@ -369,8 +366,8 @@ int init_keylogging(const char input[], struct keyboardInfo *kbd,
 	{
 		char path[PATH_MAX] = { '\0' };
 
-		pathcpy(path, config->logpath);
-		pathcat(path, "/key.log");
+		memcpy(path, config->logpath, PATH_MAX);
+		strncat(path, "/key.log", PATH_MAX);
 
 		kbd->outfd =
 			open(path, O_WRONLY | O_APPEND | O_CREAT | O_NOCTTY,

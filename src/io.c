@@ -1,6 +1,5 @@
 #include <inttypes.h>
 #include <limits.h>
-#include <safe_str_lib.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,10 +14,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "config.h"
 #include "io.h"
 #include "mbuffer.h"
-#include "safe_lib.h"
 #include "toml.h"
 
 void readconfig(const char path[], struct configInfo *config)
@@ -101,7 +98,7 @@ void readconfig(const char path[], struct configInfo *config)
 		const toml_datum_t daemon_log_path =
 			toml_string_in(config_table, "daemon_log_path");
 		if (daemon_log_path.ok) {
-			strcpy_s(config->logpath, PATH_MAX,
+			snprintf(config->logpath, PATH_MAX, "%s",
 				 daemon_log_path.u.s);
 		}
 
@@ -118,15 +115,15 @@ void handleargs(int argc, char *argv[], struct argInfo *data)
 	int i;
 	data->configpath[0] = '\0';
 
-	// Iterate through all members of the "argv" array and handle them.
+	// Iterate through all members of the argv array and handle every option.
 	for (i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 			// The configuration path option.
 			case 'c':
 				if (i + 1 <= argc) {
-					strcpy_s(data->configpath, PATH_MAX,
-						 argv[i + 1]); // config path
+					snprintf(data->configpath, PATH_MAX,
+						 "%s", argv[i + 1]);
 				}
 				break;
 
@@ -142,7 +139,7 @@ void handleargs(int argc, char *argv[], struct argInfo *data)
 
 			// Shows the help section.
 			case 'h':
-				printf("duckydd %s\n\n"
+				printf("duckydd \n\n"
 				       "Usage: duckydd [Options]\n"
 				       "\t\t-c <file>\tSpecify a config file path\n"
 				       "\t\t-d\t\tDaemonize the process\n"
@@ -150,8 +147,7 @@ void handleargs(int argc, char *argv[], struct argInfo *data)
 				       "\t\t\t\tTHE -v OPTION CAN POTENTIALY EXPOSE PASSWORDS!!!\n"
 				       "\t\t-h\t\tShows this help section\n\n"
 				       "For config options please have a look at the README.md\n"
-				       "\n",
-				       GIT_VERSION);
+				       "\n");
 				exit(EXIT_SUCCESS);
 				break;
 
@@ -213,60 +209,12 @@ void _logger(short loglevel, const char func[], const char format[], ...)
 	}
 }
 
-errno_t pathcat(char path1[], const char path2[])
-{
-	if (strnlen_s(path1, PATH_MAX) + strnlen_s(path2, PATH_MAX) <
-	    PATH_MAX) {
-		return strcat_s(path1, PATH_MAX, path2);
-	}
-	return EINVAL;
-}
-
-errno_t pathcpy(char path1[], const char path2[])
-{
-	if (strnlen_s(path1, PATH_MAX) + strnlen_s(path2, PATH_MAX) <
-	    PATH_MAX) {
-		return strcpy_s(path1, PATH_MAX, path2);
-	}
-	return EINVAL;
-}
-
-// memsave strcmp functions
-int strcmp_ss(const char str1[], const char str2[])
-{
-	size_t i = 0;
-
-	while (str1[i] == str2[i]) {
-		if (str1[i] == '\0' || str2[i] == '\0') {
-			break;
-		}
-		i++;
-	}
-
-	return str1[i] - str2[i];
-}
-
-int strncmp_ss(const char str1[], const char str2[], size_t length)
-{
-	size_t i = 0;
-
-	while (str1[i] == str2[i] && i < length) {
-		if (str1[i] == '\0' || str2[i] == '\0') {
-			break;
-		}
-		i++;
-	}
-
-	return str1[i] - str2[i];
-}
-
-// returns the filename from a path
+// Returns the filename from a path.
 const char *find_file(const char *input)
 {
 	size_t i;
 
-	for (i = strnlen_s(input, PATH_MAX); i > 0;
-	     i--) { // returns the filename
+	for (i = strnlen(input, PATH_MAX); i > 0; i--) {
 		if (input[i] == '/') {
 			return &input[i + 1];
 		}

@@ -13,19 +13,15 @@
 #include <limits.h>
 #include <linux/input.h>
 #include <malloc.h>
-#include <math.h>
-#include <signal.h>
 #include <sys/epoll.h>
 #include <sys/resource.h>
 #include <time.h>
 #include <unistd.h>
 #include <xkbcommon/xkbcommon-x11.h>
 
-#include "config.h"
 #include "io.h"
 #include "logkeys.h"
 #include "mbuffer.h"
-#include "safe_lib.h"
 #include "signalhandler.h"
 #include "udev.h"
 
@@ -84,7 +80,7 @@ static int deinit_device(struct deviceInfo *device, struct configInfo *config,
 			LOG(2, "Writing devlog to logfile\n");
 
 			if (m_append_array_char(&device->devlog, temp,
-						strnlen_s(temp, 100))) {
+						strnlen(temp, 100))) {
 				LOG(-1, "append_mbuffer_array_char failed!\n");
 			}
 
@@ -123,8 +119,8 @@ static int search_fd(struct managedBuffer *device, const char location[])
 		size_t i;
 
 		for (i = 0; i < device->size; i++) { // find the fd in the array
-			if (strcmp_ss(m_deviceInfo(device)[i].openfd,
-				      location) == 0 &&
+			if (strcmp(m_deviceInfo(device)[i].openfd, location) ==
+				    0 &&
 			    m_deviceInfo(device)[i].fd != -1) {
 				return i;
 			}
@@ -218,8 +214,8 @@ static int add_fd(struct managedBuffer *device, struct keyboardInfo *kbd,
 
 		// initialize all members of the device array which haven't been used
 		for (i = prevsize; i < device->size; i++) {
-			memset_s(&m_deviceInfo(device)[i],
-				 sizeof(struct deviceInfo), 0);
+			memset(&m_deviceInfo(device)[i], 0,
+			       sizeof(struct deviceInfo));
 			m_deviceInfo(device)[i].fd = -1;
 
 			m_init(&m_deviceInfo(device)[i].devlog, sizeof(char));
@@ -232,7 +228,7 @@ static int add_fd(struct managedBuffer *device, struct keyboardInfo *kbd,
 	if (m_deviceInfo(device)[fd].fd == -1) {
 		size_t i;
 
-		strcpy_s(m_deviceInfo(device)[fd].openfd, PATH_MAX, location);
+		strncpy(m_deviceInfo(device)[fd].openfd, location, PATH_MAX);
 		m_deviceInfo(device)[fd].fd = fd;
 
 #ifdef ENABLE_XKB_EXTENSION
@@ -263,16 +259,16 @@ static int add_fd(struct managedBuffer *device, struct keyboardInfo *kbd,
 		for (i = 0;
 		     i < m_deviceInfo(device)[fd].timediff.strokesdiff.size;
 		     i++) {
-			memset_s(&m_struct_timespec(
-					 &m_deviceInfo(device)[fd]
-						  .timediff.strokesdiff)[i],
-				 sizeof(struct timespec), 0);
+			memset(&m_struct_timespec(
+				       &m_deviceInfo(device)[fd]
+						.timediff.strokesdiff)[i],
+			       0, sizeof(struct timespec));
 		}
 
 		// add a new fd which should be polled
 		{
 			struct epoll_event event;
-			memset_s(&event, sizeof(struct epoll_event), 0);
+			memset(&event, 0, sizeof(struct epoll_event));
 			event.events = EPOLLIN;
 			event.data.fd = fd;
 
@@ -326,7 +322,7 @@ static int handle_udevev(struct managedBuffer *device, struct keyboardInfo *kbd,
 		    udev_device_get_property_value(udev->dev, "MINOR"));
 
 		// add the devnode to the array
-		if (strncmp_ss(action, "add", 3) == 0) {
+		if (memcmp(action, "add", 3) == 0) {
 			int fd;
 
 			fd = add_fd(device, kbd, config, epollfd, devnode);
@@ -341,7 +337,7 @@ static int handle_udevev(struct managedBuffer *device, struct keyboardInfo *kbd,
 			}
 
 			// remove the fd from the device array
-		} else if (strncmp_ss(action, "remove", 6) == 0) {
+		} else if (memcmp(action, "remove", 6) == 0) {
 			int fd;
 
 			// search for the fd and remove it if possible
@@ -402,7 +398,7 @@ int init(char configpath[], struct udevInfo *udev, struct configInfo *config,
 		return -1;
 	}
 
-	memset_s(udevevent, sizeof(struct epoll_event), 0);
+	memset(udevevent, 0, sizeof(struct epoll_event));
 	udevevent->events = EPOLLIN;
 	udevevent->data.fd = udev->udevfd;
 
