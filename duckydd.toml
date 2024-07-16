@@ -2,4 +2,4 @@
 minimum_avg = 7327733
 max_score = 1
 use_xkeymaps = false
-daemon_log_path = "./quack.log"
+daemon_log_path = "/root"
