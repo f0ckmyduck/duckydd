@@ -1,6 +1,3 @@
-[submodule "lib/safestringlib"]
-	path = lib/safestringlib
-	url = https://github.com/intel/safestringlib
 [submodule "lib/tomlc99"]
 	path = lib/tomlc99
 	url = https://github.com/cktan/tomlc99
