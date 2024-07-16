@@ -139,8 +139,7 @@ void handleargs(int argc, char *argv[], struct argInfo *data)
 
 			// Shows the help section.
 			case 'h':
-				printf("duckydd \n\n"
-				       "Usage: duckydd [Options]\n"
+				printf("Usage: duckydd [Options]\n"
 				       "\t\t-c <file>\tSpecify a config file path\n"
 				       "\t\t-d\t\tDaemonize the process\n"
 				       "\t\t-v\t\tIncrease verbosity of the console output (The maximum verbosity is 2)\n"
@@ -167,7 +166,8 @@ void handleargs(int argc, char *argv[], struct argInfo *data)
 	}
 }
 
-void _logger(short loglevel, const char func[], const char format[], ...)
+void _logger(short loglevel, const char func[], const int line,
+	     const char format[], ...)
 {
 	// Check if the format string is bigger than the maximum allowed size.
 	if (loglevel <= g_loglevel) {
@@ -197,8 +197,8 @@ void _logger(short loglevel, const char func[], const char format[], ...)
 			}
 
 			if (g_loglevel > 0) {
-				sprintf(appended, "[%c][%s] %s", prefix, func,
-					format);
+				sprintf(appended, "[%c] (%s:%d) %s", prefix,
+					func, line, format);
 			} else {
 				sprintf(appended, "[%c] %s", prefix, format);
 			}

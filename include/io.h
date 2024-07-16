@@ -11,16 +11,19 @@
 #include "vars.h"
 
 #define LOG(loglvl, format, args...)                                           \
-	_logger(loglvl, __func__, format, ##args) // print function name
+	_logger(loglvl, __func__, __LINE__, format,                            \
+		##args) // print function name
 
 #define STOP(function)                                                         \
-	_logger(-1, __func__, "%s has failed (%d) -> %s (err: %d)\n",          \
-		function, errno, strerror(errno));                             \
+	_logger(-1, __func__, __LINE__,                                        \
+		"%s has failed (%d) -> %s (err: %d)\n", function, errno,       \
+		strerror(errno));                                              \
 	exit(EXIT_FAILURE)
 
 #define ERR(function)                                                          \
-	_logger(-1, __func__, "%s has failed (%d) -> %s (err: %d)\n",          \
-		function, errno, strerror(errno));
+	_logger(-1, __func__, __LINE__,                                        \
+		"%s has failed (%d) -> %s (err: %d)\n", function, errno,       \
+		strerror(errno));
 
 // holds data read from the config file (mainly used by readconfig)
 struct configInfo {
@@ -44,7 +47,8 @@ void handleargs(int argc, char *argv[], struct argInfo *data);
 
 // internal logger function
 char *binexpand(uint8_t bin, size_t size);
-void _logger(short loglevel, const char func[], const char format[], ...);
+void _logger(short loglevel, const char func[], const int line,
+	     const char format[], ...);
 
 const char *find_file(const char *input);
 #endif
