@@ -20,7 +20,7 @@
 
 void readconfig(const char path[], struct configInfo *config)
 {
-	int fd_config;
+	int fd_conf;
 
 	config->maxcount = -1;
 	config->logpath[0] = '\0';
@@ -29,8 +29,8 @@ void readconfig(const char path[], struct configInfo *config)
 	config->minavrg.tv_nsec = 0;
 
 	// Open the config file as read-only.
-	fd_config = open(path, O_RDWR);
-	if (fd_config < 0) {
+	fd_conf = open(path, O_RDWR);
+	if (fd_conf < 0) {
 		STOP("open");
 	}
 
@@ -44,7 +44,7 @@ void readconfig(const char path[], struct configInfo *config)
 		lock.l_start = 0;
 		lock.l_len = 0;
 
-		if (fcntl(fd_config, F_SETLK, &lock)) {
+		if (fcntl(fd_conf, F_SETLK, &lock)) {
 			if (errno == EACCES || errno == EAGAIN) {
 				LOG(-1,
 				    "Another instance is probably running!\n");
@@ -54,21 +54,23 @@ void readconfig(const char path[], struct configInfo *config)
 	}
 
 	{
-		FILE *p_config;
+		FILE *f_conf;
 		char err_ret_buff[200];
 
 		// Convert the file descriptor to a FILE pointer.
-		p_config = fdopen(fd_config, "r");
-		if (!p_config) {
+		f_conf = fdopen(fd_conf, "r");
+		if (!f_conf) {
 			STOP("fdopen");
 		}
 
 		// Parse the configuration file and extract all values from the "config" table.
-		toml_table_t *content = toml_parse_file(p_config, err_ret_buff,
+		toml_table_t *content = toml_parse_file(f_conf, err_ret_buff,
 							sizeof(err_ret_buff));
 		if (!content) {
 			STOP("toml_parse_file");
 		}
+
+		fclose(f_conf);
 
 		const toml_table_t *config_table =
 			toml_table_in(content, "config");
@@ -105,7 +107,7 @@ void readconfig(const char path[], struct configInfo *config)
 		toml_free(content);
 	}
 
-	if (close(fd_config)) {
+	if (close(fd_conf)) {
 		STOP("close");
 	}
 }
