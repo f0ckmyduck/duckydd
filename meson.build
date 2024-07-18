@@ -18,9 +18,10 @@ if dependency('xkbcommon-x11').found()
   dep += dependency('xkbcommon')
   dep += dependency('xkbcommon-x11')
   dep += dependency('xcb')
+
+  add_project_arguments('-DENABLE_XKB_EXTENSION', language: 'c')
 endif
 
-add_project_arguments('-DENABLE_XKB_EXTENSION', language: 'c')
 
 executable('duckydd', sources,
   include_directories: incdir,
